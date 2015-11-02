@@ -1,0 +1,162 @@
+<link rel="import" href="/elements/elements.html">
+
+<dom-module id="app-element">
+	<style>
+		:host {
+			display: block;
+			height: 100%;
+			width: 100%;
+			margin: 0;
+			padding: 0;
+		}
+	</style>
+	<template>
+		<paper-header-panel>
+			<paper-toolbar>
+				<paper-icon-button icon="code"></paper-icon-button>
+				<div>BATTLE</div>
+				<div class="flex">
+					<paper-tabs id="bottomTabs" class="bottom indent" selected="{{selected}}" noink no-slide>
+						<span class="flex-5"></span>
+						<paper-tab link><a href="/info" class="center-center horizontal layout" style="color: white; text-decoration: none;">Info</a></paper-tab>
+						<template is="dom-if" if="{{isLoggedIn}}">
+							<paper-tab link><a href="/battle" class="center-center horizontal layout" style="color: white; text-decoration: none;">Battle</a></paper-tab>
+						</template>
+						<paper-tab link><a href="/leaderboard" class="center-center horizontal layout" style="color: white; text-decoration: none;">Leaderboard</a></paper-tab>
+						<template is="dom-if" if="{{!isLoggedIn}}">
+							<paper-tab link><a href="/login" class="center-center horizontal layout" style="color: white; text-decoration: none;">Login</a></paper-tab>
+							<paper-tab link><a href="/register" class="center-center horizontal layout" style="color: white; text-decoration: none;">Register</a></paper-tab>
+						</template>
+						<span class="flex-5"></span>
+					</paper-tabs>
+				</div>
+				<template is="dom-if" if="{{isLoggedIn}}">
+					<paper-menu-button horizontal-align="right">
+						<paper-icon-button icon="supervisor-account" class="dropdown-trigger"></paper-icon-button>
+						<paper-menu class="dropdown-content">
+							<paper-item><a href="/" style="color: #444444; text-decoration: none;">Settings</a></paper-item>
+							<paper-item><a href="" style="color: #444444; text-decoration: none;" on-click="logout">Logout</a></paper-item>
+						</paper-menu>
+					</paper-menu-button>
+				</template>
+			</paper-toolbar>
+			<div id="sections" class="content">
+				<iron-pages attr-for-selected="data-route" selected="{{route}}" class="fullHeight" style$="{{ironPagesStyle}}">
+					<section data-route="info">
+						<battle-info></battle-info>
+					</section>
+
+					<section data-route="battle">
+						<battle-view></battle-view>
+					</section>
+
+					<section data-route="leaderboard">
+						<battle-leaderboard></battle-leaderboard>
+					</section>
+
+					<section data-route="login">
+						<login-page></login-page>
+					</section>
+
+					<section data-route="register">
+						<register-page></register-page>
+					</section>
+
+					<section data-route="unauthorized">
+						<paper-material elevation="1">
+							<h2 class="paper-font-display2">You are not authorized to see this page.</h2>
+						</paper-material>
+					</section>
+					<section data-route="error">
+						<error-page id="error" error="{{error}}"></error-page>
+					</section>
+				</iron-pages>
+			</div>
+		</paper-header-panel>
+
+		<!-- TODO(victorbalan): enable cache in production -->
+		<!--
+		<platinum-sw-register
+			auto-register
+			clients-claim
+			skip-waiting
+			on-service-worker-installed="displayInstalledToast"
+		>
+			<platinum-sw-cache default-cache-strategy="networkFirst" precache-file="precache.json"></platinum-sw-cache>
+		</platinum-sw-register>
+		-->
+	</template>
+	<script>
+		Polymer({
+			is: 'app-element',
+			properties: {
+				isLoggedIn: {
+					type: Boolean,
+					notify: true
+				},
+				selected: {
+					type: String,
+					notify: true,
+					value: -1
+				},
+				ironPagesStyle: {
+					type: String,
+					notify: true
+				},
+				progressStyle: {
+					notify: true,
+					value: 'display: none;'
+				},
+				error: {
+					type: Object,
+					notify: true
+				},
+				pendingRequests: {
+					type: Number,
+					value: 0
+				}
+			},
+			ready: function(){
+				var element = this;
+				// See https://github.com/Polymer/polymer/issues/1381
+				window.addEventListener('WebComponentsReady', function() {
+					// imports are loaded and elements have been registered
+					element.progressStyle = 'display: none;';
+				});
+				this.isLoggedIn = !!localStorage.token;
+			},
+			startLoading: function(){
+				if(this.pendingRequests === 0){
+					this._showProgress();
+				}
+				this.pendingRequests ++;
+			},
+			stopLoading: function(){
+				this.pendingRequests --;
+				if(this.pendingRequests === 0){
+					this._hideProgress();
+				}
+			},
+			_showProgress: function(){
+				this.progressStyle = '';
+				this.ironPagesStyle = 'display: none;';
+			},
+			_hideProgress: function(){
+				this.progressStyle = 'display: none;';
+				this.ironPagesStyle = '';
+			},
+			login: function(username, token) {
+				this.isLoggedIn = true;
+				localStorage.setItem('token', token);
+				localStorage.setItem('username', username);
+				page.redirect('/info');
+			},
+			logout: function(){
+				this.isLoggedIn = false;
+				localStorage.removeItem('token');
+				localStorage.removeItem('username');
+				page.redirect('/info');
+			}
+		});
+	</script>
+</dom-module>

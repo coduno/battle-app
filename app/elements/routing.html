@@ -1,0 +1,46 @@
+<script src="../bower_components/page/page.js"></script>
+<script>
+window.addEventListener('WebComponentsReady', function() {
+	page('/', function() {
+		page('/info');
+	});
+
+
+	page('/info', function(context){
+		app.route = 'info';
+		Polymer.Base.importHref('/elements/battle/battle-info.html');
+	});
+
+	page('/leaderboard', function(context){
+		app.route = 'leaderboard';
+		Polymer.Base.importHref('/elements/battle/battle-leaderboard.html');
+	});
+
+	page('/login', function() {
+		app.route = 'login';
+		Polymer.Base.importHref('/elements/auth/login-page.html');
+	});
+
+	page('/register', function() {
+		app.route = 'register';
+		Polymer.Base.importHref('/elements/auth/register-page.html');
+	});
+
+	page('/battle', function(context){
+		checkAuthentication();
+		app.route = 'battle';
+		Polymer.Base.importHref('/elements/battle/battle-view.html');
+	});
+
+	page({
+		hashbang: true
+	});
+
+	function checkAuthentication(){
+		if(!localStorage.token){
+			page.redirect('/login');
+			return;
+		}
+	}
+});
+</script>

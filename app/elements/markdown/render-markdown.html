@@ -1,0 +1,38 @@
+<dom-module id="render-markdown">
+	<style>
+		:host{
+			margin-top: 16px;
+			margin-bottom: 16px;
+			display: block;
+		}
+	</style>
+	<template>
+		<link rel="stylesheet" href="/bower_components/highlightjs/styles/default.css">
+		<div id="markdownViewer"></div>
+	</template>
+	<script src="/bower_components/marked/marked.min.js" type="application/javascript"></script>
+	<script src="/bower_components/highlightjs/highlight.pack.min.js" type="application/javascript"></script>
+	<script>
+		/*global marked:false,hljs:false  */
+		Polymer({
+			is: 'render-markdown',
+			properties: {
+				markdown: {
+					type: String,
+					notify: true,
+					observer: '_updateChanges'
+				}
+			},
+			created: function() {
+				marked.setOptions({
+					highlight: function (code) {
+						return hljs.highlightAuto(code).value;
+					}
+				});
+			},
+			_updateChanges: function(){
+				this.$.markdownViewer.innerHTML = marked(this.markdown);
+			}
+		});
+	</script>
+</dom-module>

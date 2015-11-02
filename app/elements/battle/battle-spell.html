@@ -1,0 +1,54 @@
+<link rel="import" href="/elements/markdown/render-markdown.html">
+
+<dom-module id="battle-spell">
+	<template>
+		<render-markdown markdown="{{description}}"></render-markdown>
+		<!-- <p><span>*</span>{{spell.name}}</p> -->
+		<!-- <p><span>  cooldown </span>{{spell.cooldown}}</p> -->
+	</template>
+	<script>
+		Polymer({
+			is: 'battle-spell',
+			properties: {
+				spell: {
+					type: Object,
+					reflectToAttribute: true
+				}
+			},
+			observers: [
+				'_afterPropertiesSet(spell)'
+			],
+			_afterPropertiesSet: function(){
+				this.description = ' * __' + this.spell.name + '__ ' + this.spell.info + '\n';
+				this.description = this.description + '- cooldown ' + this.spell.cooldown + ' seconds\n';
+				if(!!this.spell.range) {
+					this.description = this.description + '- range ' + this.spell.range + '\n';
+				}
+
+				switch(this.spell.type){
+					case 'damage':
+						this.description = this.description + '- damage ' + this.spell.power;
+						break;
+					case 'heal':
+						this.description = this.description + '- heal power ' + this.spell.power;
+						break;
+					case 'kick':
+						this.description = this.description + '- kick power ' + this.spell.power;
+						break;
+					case 'stun':
+						this.description = this.description + '- duration ' + this.spell.duration;
+						break;
+					case 'slow':
+						this.description = this.description + '- duration ' + this.spell.duration;
+						break;
+					case 'dot':
+						this.description = this.description + '- full damage ' + this.spell.power;
+						break;
+					case 'custom':
+
+						break;
+				}
+			}
+		});
+	</script>
+</dom-module>

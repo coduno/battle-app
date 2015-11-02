@@ -1,0 +1,56 @@
+<link rel="import" href="/bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="/bower_components/paper-material/paper-material.html">
+<link rel="import" href="/bower_components/paper-button/paper-button.html">
+<link rel="import" href="/bower_components/paper-input/all-imports.html">
+
+<dom-module id="login-page">
+	<style>
+		paper-material {
+			background: white;
+			margin: auto;
+			margin-top: 64px;
+			padding: 16px;
+			width: 30%;
+		}
+	</style>
+	<template>
+		<iron-ajax
+			id="loginRequest"
+			method="POST"
+			handle-as="json"
+			content-type="application/json"
+			on-response="_onResponse"
+			on-error="_onError">
+		</iron-ajax>
+		<paper-material elevation="1">
+			<paper-input type="text" label="Username" value="{{login.username}}" autofocus="true"></paper-input>
+			<paper-input type="password" label="Password" value="{{login.password}}" autofocus="true"></paper-input>
+			<paper-button  flat colorful on-click="_login">Login</paper-button>
+		</paper-material>
+	</template>
+	<script>
+		Polymer({
+			is: 'login-page',
+			properties: {
+				login: {
+					type: Object,
+					value: {}
+				}
+			},
+			ready: function(){
+				this.$.loginRequest.url = util.build('/login');
+			},
+			_login: function(){
+				this.$.loginRequest.body = this.login;
+				this.$.loginRequest.generateRequest();
+			},
+			_onResponse: function(r){
+				var token = r.detail.response;
+				document.querySelector('app-element').login(this.login.username, token);
+			},
+			_onError: function(err){
+				console.log(err);
+			}
+		});
+	</script>
+</dom-module>

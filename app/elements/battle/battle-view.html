@@ -1,0 +1,600 @@
+<link rel="import" href="/bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="/bower_components/paper-material/paper-material.html">
+<link rel="import" href="/elements/ws-element.html">
+
+<dom-module id="battle-view">
+	<style>
+		paper-material {
+			background: white;
+			margin: 16px;
+			padding: 16px;
+		}
+	</style>
+	<template>
+		<ws-element url="{{wsUrl}}"></ws-element>
+		<paper-material elevation="1">
+			<h2>Battle view</h2>
+			<div id="battleView">
+			</div>
+		</paper-material>
+	</template>
+	<script src="/bower_components/pixi.js/bin/pixi.js"></script>
+	<script>
+		Polymer({
+			is: 'battle-view',
+			properties: {
+				ground: Object,
+				enemy: Object,
+				me: Object,
+				animatedPlayer: {
+					type: Object,
+					value: {
+					}
+				}
+			},
+			listeners: {
+				'ws-onerror': 'onWsError',
+				'ws-onmessage': 'onWsMessage',
+				'ws-onopen': 'onWsOpen'
+			},
+			attack: function(){
+				this.animatedPlayer.attack();
+			},
+			onWsOpen: function(){
+				console.log('WS OPENED');
+			},
+			onWsError: function(err){
+				console.log(err);
+			},
+			onWsMessage: function(data){
+				var event = JSON.parse(data.detail);
+				console.log(event);
+				if(event.Nick === this.nick){
+					switch(event.Type){
+						case "MOVE":
+							this.me.position = event.From;
+							this.animatedPlayer.move(this.getDirectionFromEvent(event.From, event.To));
+							this.moveMe(this.getDirectionFromEvent(event.From, event.To));
+							this.me.position = event.To;
+							break;
+						case "JOIN":
+							this.animatedPlayer.stand();
+							this.me.position = event.From;
+							break;
+						case "ATTACK":
+							this.animatedPlayer.attack(this.getDirectionFromEvent(event.From, event.To));
+							break;
+						case "SPELL":
+							this.animatedPlayer.spell(this.getDirectionFromEvent(event.From, event.To));
+							break;
+					}
+				}else{
+					var objectX = Math.abs(event.To.x - this.me.position.x + 11) * this.spriteSize;
+					var objectY = Math.abs(this.me.position.y - event.To.y + 11) * this.spriteSize;
+					console.log(objectX + " " + objectY);
+					// if(objectX == 21 || objectY == 21){
+					// 	delete this.objects[event.Nick];
+					// 	console.log("DELETED " + event.Nick);
+					// 	return;
+					// }
+					switch(event.Type){
+						case "MOVE":
+							if(this.objects[event.Nick] == undefined){
+								var joinX = Math.abs(event.From.x - this.me.position.x + 11) * this.spriteSize;
+								var joinY = Math.abs(this.me.position.y - event.From.y + 11) * this.spriteSize;
+								console.log("ADDED " + event.Nick);
+								this.addAnimatedEnemy(event.Nick, joinX, joinY);
+							}
+							this.objects[event.Nick].move(this.getDirectionFromEvent(event.From, event.To), objectX, objectY);
+							break;
+						case "JOIN":
+							if(this.objects[event.Nick] == undefined){
+								this.addAnimatedEnemy(event.Nick, objectX, objectY);
+							}
+							this.objects[event.Nick].stand();
+							break;
+						case "DEAD":
+							this.objects[event.Nick].remove();
+							delete this.objects[event.Nick];
+							break;
+						case "ATTACK":
+							this.objects[event.Nick].attack(this.getDirectionFromEvent(event.From, event.To));
+							break;
+						case "SPELL":
+							this.objects[event.Nick].spell(this.getDirectionFromEvent(event.From, event.To));
+							break;
+					}
+				}
+			},
+			moveObjectTo: function(objectId, x, y){
+				this.objects[objectId].position.x = x * this.spriteSize;
+				this.textObjects[objectId].position.x = x * this.spriteSize;
+				this.objects[objectId].position.y = y * this.spriteSize;
+				this.textObjects[objectId].position.y = y * this.spriteSize;
+			},
+			getDirectionFromEvent: function(f, t){
+				if(f.x < t.x){
+					return 'right';
+				}
+				if(f.x > t.x){
+					return 'left';
+				}
+				if(f.y < t.y){
+					return 'up';
+				}
+				if(f.y > t.y){
+					return 'down';
+				}
+			},
+			moveMe: function(direction){
+				switch(direction){
+					case "left":
+						this.moveAllObjects("right");
+						break;
+					case "right":
+						this.moveAllObjects("left");
+						break;
+					case "up":
+						this.moveAllObjects("down");
+						break;
+					case "down":
+						this.moveAllObjects("up");
+						break;
+				}
+			},
+			moveAllObjects: function(direction){
+				for(var key in this.objects){
+					this.moveObject(key, direction);
+				}
+			},
+			moveObject: function(object, direction){
+				switch(direction){
+					case "left":
+						this.objects[object].increasePosition(-this.spriteSize, 0);
+						break;
+					case "right":
+						this.objects[object].increasePosition(this.spriteSize, 0);
+						break;
+					case "up":
+						this.objects[object].increasePosition(0, -this.spriteSize);
+						break;
+					case "down":
+						this.objects[object].increasePosition(0, this.spriteSize);
+						break;
+				}
+			},
+			ready: function(){
+				var token = localStorage.token;
+				this.nick = localStorage.username;
+				this.wsUrl = 'ws://172.24.30.22:8090/?token=' + token;
+				this.me = {};
+				this.objects = {};
+				this.textObjects = {};
+				var element = this;
+				//Aliases
+				var Container = PIXI.Container,
+						autoDetectRenderer = PIXI.autoDetectRenderer,
+						loader = PIXI.loader,
+						resources = PIXI.loader.resources,
+						Sprite = PIXI.Sprite,
+						TextureCache = PIXI.utils.TextureCache;
+
+				var stage = new Container();
+				var dimension = 840;
+				this.dimension = dimension;
+				var spriteSize = dimension / 22;
+				this.spriteSize = spriteSize;
+				var renderer = autoDetectRenderer(dimension, dimension);
+				renderer.autoResize = true;
+				this.stage = stage;
+				this.$.battleView.appendChild(renderer.view);
+				console.log(renderer)
+
+				requestAnimationFrame(animate);
+				loader
+					.add('/images/sand.png')
+					.add('/images/samurai.png')
+					.add('/images/redhead.png')
+					.add('/images/ninja.png')
+					.load(setup);
+
+				function setup(){
+					var grassTexture = resources['/images/sand.png'].texture
+					grassTexture.baseTexture.width = spriteSize;
+					grassTexture.baseTexture.height = spriteSize;
+
+					var ground = new PIXI.extras.TilingSprite(grassTexture, dimension, dimension);
+					ground.position.x = 0;
+					ground.position.y = 0;
+					ground.tilePosition.x = 0;
+					ground.tilePosition.y = 0;
+					element.ground = ground;
+					stage.addChild(element.ground);
+
+					element.initializePlayer();
+				}
+				function animate(){
+					requestAnimationFrame(animate);
+					renderer.render(stage);
+				}
+			},
+			newPlayer: function(nick, x, y){
+				var texture = PIXI.utils.TextureCache["/images/samurai.png"];
+				var rectangle = new PIXI.Rectangle(1, 1, 40, 29);
+				texture.frame = rectangle;
+				var player = new PIXI.Sprite(texture);
+				player.height = this.spriteSize;
+				player.width = this.spriteSize;
+				player.anchor.x = 0;
+				player.anchor.y = 0;
+				player.position.x = x * this.spriteSize;
+				player.position.y = y * this.spriteSize;
+				this.objects[nick] = player;
+			},
+			initializePlayer: function(){
+				this.animatedPlayer = this.getAnimatedPlayer(this.dimension/2, this.dimension/2);
+				this.stage.addChild(this.animatedPlayer.standing);
+				this.stage.addChild(this.animatedPlayer.attacking['down']);
+				this.stage.addChild(this.animatedPlayer.attacking['left']);
+				this.stage.addChild(this.animatedPlayer.attacking['right']);
+				this.stage.addChild(this.animatedPlayer.attacking['up']);
+
+				this.stage.addChild(this.animatedPlayer.moving['down']);
+				this.stage.addChild(this.animatedPlayer.moving['right']);
+				this.stage.addChild(this.animatedPlayer.moving['up']);
+				this.stage.addChild(this.animatedPlayer.moving['left']);
+
+				this.stage.addChild(this.animatedPlayer.casting['down']);
+				this.stage.addChild(this.animatedPlayer.casting['right']);
+				this.stage.addChild(this.animatedPlayer.casting['up']);
+				this.stage.addChild(this.animatedPlayer.casting['left']);
+
+				var element = this;
+				this.animatedPlayer.stand = function(){
+					for(var key in this.attacking){
+						this.attacking[key].visible = false;
+						this.moving[key].visible = false;
+						this.casting[key].visible = false;
+					}
+					this.standing.visible = true;
+				}
+				this.animatedPlayer.move = function(direction){
+					for(var key in this.attacking){
+						this.attacking[key].visible = false;
+						this.moving[key].visible = false;
+						this.casting[key].visible = false;
+					}
+					this.standing.visible = false;
+					this.moving[direction].visible = true;
+					this.moving[direction].play();
+					var that = this;
+					var interval = setInterval(function(){
+						var value = 0.5;
+						switch(direction){
+							case 'left':
+								element.ground.tilePosition.x += value;
+								break;
+							case 'up':
+								element.ground.tilePosition.y += value;
+								break;
+							case 'down':
+								element.ground.tilePosition.y -= value;
+								break;
+							case 'right':
+								element.ground.tilePosition.x -= value;
+								break;
+						}
+					}, 10)
+					setTimeout(function(){
+						that.stand();
+						that.moving[direction].stop();
+						clearInterval(interval);
+					}, 1000);
+				}
+				this.animatedPlayer.attack = function(direction){
+					this.standing.visible = false;
+					for(var key in this.attacking){
+						this.attacking[key].visible = false;
+						this.moving[key].visible = false;
+						this.casting[key].visible = false;
+					}
+					this.attacking[direction].visible = true;
+					this.attacking[direction].play();
+					var that = this;
+					setTimeout(function(){
+						that.stand();
+						that.attacking[direction].stop();
+					}, 500);
+				}
+				this.animatedPlayer.spell = function(direction){
+					this.standing.visible = false;
+					for(var key in this.attacking){
+						this.attacking[key].visible = false;
+						this.moving[key].visible = false;
+						this.casting[key].visible = false;
+					}
+					this.casting[direction].visible = true;
+					this.casting[direction].play();
+					var that = this;
+					setTimeout(function(){
+						that.stand();
+						that.casting[direction].stop();
+					}, 500);
+				}
+				this.animatedPlayer.stand();
+			},
+			addAnimatedEnemy: function(nick, x, y){
+				var animatedPlayer = this.getAnimatedPlayer(x, y);
+				this.stage.addChild(animatedPlayer.standing);
+				this.stage.addChild(animatedPlayer.attacking['down']);
+				this.stage.addChild(animatedPlayer.attacking['left']);
+				this.stage.addChild(animatedPlayer.attacking['right']);
+				this.stage.addChild(animatedPlayer.attacking['up']);
+
+				this.stage.addChild(animatedPlayer.moving['down']);
+				this.stage.addChild(animatedPlayer.moving['right']);
+				this.stage.addChild(animatedPlayer.moving['up']);
+				this.stage.addChild(animatedPlayer.moving['left']);
+
+				this.stage.addChild(animatedPlayer.casting['down']);
+				this.stage.addChild(animatedPlayer.casting['right']);
+				this.stage.addChild(animatedPlayer.casting['up']);
+				this.stage.addChild(animatedPlayer.casting['left']);
+
+				var element = this;
+				animatedPlayer.remove = function(){
+					for(var key in this.attacking){
+						element.stage.removeChild(this.attacking[key]);
+						element.stage.removeChild(this.moving[key]);
+						element.stage.removeChild(this.casting[key]);
+					}
+					element.stage.removeChild(this.standing);
+				}
+				animatedPlayer.stand = function(){
+					for(var key in this.attacking){
+						this.attacking[key].visible = false;
+						this.moving[key].visible = false;
+						this.casting[key].visible = false;
+					}
+					this.standing.visible = true;
+				}
+				animatedPlayer.move = function(direction, x, y){
+					for(var key in this.attacking){
+						this.attacking[key].visible = false;
+						this.moving[key].visible = false;
+						this.casting[key].visible = false;
+					}
+					this.standing.visible = false;
+					this.moving[direction].visible = true;
+					this.moving[direction].play();
+					var that = this;
+					var xOffset = (x - that.standing.position.x)/100;
+					var yOffset = (y - that.standing.position.y)/100;
+
+					var interval = setInterval(function(){
+						var myx = that.standing.position.x;
+						var myy = that.standing.position.y;
+						that.setPosition(myx + xOffset, myy + yOffset);
+					}, 10)
+					setTimeout(function(){
+						that.stand();
+						that.moving[direction].stop();
+						clearInterval(interval);
+					}, 1000);
+				}
+				animatedPlayer.setPosition = function(x, y){
+					for(var key in this.attacking){
+						this.attacking[key].position.x = x;
+						this.attacking[key].position.y = y;
+						this.moving[key].position.x = x;
+						this.moving[key].position.y = y;
+						this.casting[key].position.x = x;
+						this.casting[key].position.y = y;
+					}
+					this.standing.position.x = x;
+					this.standing.position.y = y;
+				}
+				animatedPlayer.attack = function(direction){
+					this.standing.visible = false;
+					for(var key in this.attacking){
+						this.attacking[key].visible = false;
+						this.moving[key].visible = false;
+						this.casting[key].visible = false;
+					}
+					this.attacking[direction].visible = true;
+					this.attacking[direction].play();
+					var that = this;
+					setTimeout(function(){
+						that.stand();
+						that.attacking[direction].stop();
+					}, 500);
+				}
+				animatedPlayer.spell = function(direction){
+					this.standing.visible = false;
+					for(var key in this.attacking){
+						this.attacking[key].visible = false;
+						this.moving[key].visible = false;
+						this.casting[key].visible = false;
+					}
+					this.casting[direction].visible = true;
+					this.casting[direction].play();
+					var that = this;
+					setTimeout(function(){
+						that.stand();
+						that.casting[direction].stop();
+					}, 500);
+				}
+				animatedPlayer.increasePosition = function(xo, yo){
+					var xOffset = xo/100;
+					var yOffset = yo/100;
+					this.setPosition(this.standing.position.x + xOffset, this.standing.position.y + yOffset);
+					var that = this;
+					var interval = setInterval(function(){
+						var myx = that.standing.position.x;
+						var myy = that.standing.position.y;
+							that.setPosition(myx + xOffset, myy + yOffset);
+					}, 10)
+					setTimeout(function(){
+						clearInterval(interval);
+					}, 1000);
+				}
+				this.objects[nick] = animatedPlayer;
+				animatedPlayer.stand();
+				console.log(this.objects);
+			},
+			getAnimatedPlayer: function(x, y){
+				var texture = PIXI.utils.TextureCache["/images/redhead.png"];
+				var s1 = new PIXI.Texture(texture, new PIXI.Rectangle(0, 0, 54, 54))
+
+				var standingTextures = [s1];
+				var standing = new PIXI.extras.MovieClip(standingTextures);
+				standing.animationSpeed = 0.1;
+				standing.position.x = x;
+				standing.position.y = y;
+				standing.width = 2 * this.spriteSize;
+				standing.height = 2 * this.spriteSize;
+				standing.play();
+				standing.visible = false;
+				var animatedPlayer = {};
+				animatedPlayer.standing = standing;
+
+				animatedPlayer.attacking = {};
+				animatedPlayer.attacking['down'] = this.getAttackingClip("DOWN", texture, x, y);
+				animatedPlayer.attacking['left'] = this.getAttackingClip("LEFT", texture, x, y);
+				animatedPlayer.attacking['right'] = this.getAttackingClip("RIGHT", texture, x, y);
+				animatedPlayer.attacking['up'] = this.getAttackingClip("UP", texture, x, y);
+
+				animatedPlayer.moving = {};
+				animatedPlayer.moving['left'] = this.getMovingClip("LEFT", texture, x, y);
+				animatedPlayer.moving['down'] = this.getMovingClip("DOWN", texture, x, y);
+				animatedPlayer.moving['right'] = this.getMovingClip("RIGHT", texture, x, y);
+				animatedPlayer.moving['up'] = this.getMovingClip("UP", texture, x, y);
+
+				animatedPlayer.casting = {};
+				animatedPlayer.casting['left'] = this.getSpellClip("LEFT", texture, x, y);
+				animatedPlayer.casting['down'] = this.getSpellClip("DOWN", texture, x, y);
+				animatedPlayer.casting['right'] = this.getSpellClip("RIGHT", texture, x, y);
+				animatedPlayer.casting['up'] = this.getSpellClip("UP", texture, x, y);
+
+				return animatedPlayer;
+			},
+			getAttackingClip: function(direction, texture, x, y){
+				var attacking;
+				switch(direction){
+					case "RIGHT":
+						var a1 = new PIXI.Texture(texture, new PIXI.Rectangle(0, 540, 54, 54))
+						var a2 = new PIXI.Texture(texture, new PIXI.Rectangle(54, 540, 54, 54))
+						var a3 = new PIXI.Texture(texture, new PIXI.Rectangle(108, 540, 54, 54))
+						attacking =  new PIXI.extras.MovieClip([a1, a2, a3]);
+						break;
+					case "LEFT":
+						var a1 = new PIXI.Texture(texture, new PIXI.Rectangle(0, 594, 54, 54))
+						var a2 = new PIXI.Texture(texture, new PIXI.Rectangle(54, 594, 54, 54))
+						var a3 = new PIXI.Texture(texture, new PIXI.Rectangle(108, 594, 54, 54))
+						attacking = new PIXI.extras.MovieClip([a1, a2, a3]);
+						break;
+					case "UP":
+						var a1 = new PIXI.Texture(texture, new PIXI.Rectangle(0, 486, 54, 54))
+						var a2 = new PIXI.Texture(texture, new PIXI.Rectangle(54, 486, 54, 54))
+						var a3 = new PIXI.Texture(texture, new PIXI.Rectangle(108, 486, 54, 54))
+						attacking = new PIXI.extras.MovieClip([a1, a2, a3]);
+						break;
+					case "DOWN":
+						var a1 = new PIXI.Texture(texture, new PIXI.Rectangle(0, 432, 54, 54))
+						var a2 = new PIXI.Texture(texture, new PIXI.Rectangle(54, 432, 54, 54))
+						var a3 = new PIXI.Texture(texture, new PIXI.Rectangle(108, 432, 54, 54))
+						attacking = new PIXI.extras.MovieClip([a1, a2, a3]);
+						break;
+				}
+				attacking.animationSpeed = 0.1;
+				attacking.position.x = x;
+				attacking.position.y = y;
+				attacking.width = 2 * this.spriteSize;
+				attacking.height = 2 * this.spriteSize;
+				return attacking;
+			},
+			getMovingClip: function(direction, texture, x, y){
+				var moving;
+				switch(direction){
+					case "RIGHT":
+						var a1 = new PIXI.Texture(texture, new PIXI.Rectangle(270, 108, 54, 54))
+						var a2 = new PIXI.Texture(texture, new PIXI.Rectangle(324, 108, 54, 54))
+						var a3 = new PIXI.Texture(texture, new PIXI.Rectangle(378, 108, 54, 54))
+						var a4 = new PIXI.Texture(texture, new PIXI.Rectangle(432, 108, 54, 54))
+						var a5 = new PIXI.Texture(texture, new PIXI.Rectangle(486, 108, 54, 54))
+						var a6 = new PIXI.Texture(texture, new PIXI.Rectangle(540, 108, 54, 54))
+						moving = new PIXI.extras.MovieClip([a1, a2, a3, a4, a5, a6]);
+						break;
+					case "LEFT":
+						var a1 = new PIXI.Texture(texture, new PIXI.Rectangle(270, 162, 54, 54))
+						var a2 = new PIXI.Texture(texture, new PIXI.Rectangle(324, 162, 54, 54))
+						var a3 = new PIXI.Texture(texture, new PIXI.Rectangle(378, 162, 54, 54))
+						var a4 = new PIXI.Texture(texture, new PIXI.Rectangle(432, 162, 54, 54))
+						var a5 = new PIXI.Texture(texture, new PIXI.Rectangle(486, 162, 54, 54))
+						var a6 = new PIXI.Texture(texture, new PIXI.Rectangle(540, 162, 54, 54))
+						moving = new PIXI.extras.MovieClip([a1, a2, a3, a4, a5, a6]);
+						break;
+					case "UP":
+						var a1 = new PIXI.Texture(texture, new PIXI.Rectangle(270, 54, 54, 54))
+						var a2 = new PIXI.Texture(texture, new PIXI.Rectangle(324, 54, 54, 54))
+						var a3 = new PIXI.Texture(texture, new PIXI.Rectangle(378, 54, 54, 54))
+						var a4 = new PIXI.Texture(texture, new PIXI.Rectangle(432, 54, 54, 54))
+						var a5 = new PIXI.Texture(texture, new PIXI.Rectangle(486, 54, 54, 54))
+						var a6 = new PIXI.Texture(texture, new PIXI.Rectangle(540, 54, 54, 54))
+						moving = new PIXI.extras.MovieClip([a1, a2, a3, a4, a5, a6]);
+						break;
+					case "DOWN":
+						var a1 = new PIXI.Texture(texture, new PIXI.Rectangle(270, 0, 54, 54))
+						var a2 = new PIXI.Texture(texture, new PIXI.Rectangle(324, 0, 54, 54))
+						var a3 = new PIXI.Texture(texture, new PIXI.Rectangle(378, 0, 54, 54))
+						var a4 = new PIXI.Texture(texture, new PIXI.Rectangle(432, 0, 54, 54))
+						var a5 = new PIXI.Texture(texture, new PIXI.Rectangle(486, 0, 54, 54))
+						var a6 = new PIXI.Texture(texture, new PIXI.Rectangle(540, 0, 54, 54))
+						moving = new PIXI.extras.MovieClip([a1, a2, a3, a4, a5, a6]);
+						break;
+				}
+				moving.animationSpeed = 0.1;
+				moving.position.x = x;
+				moving.position.y = y;
+				moving.width = 2 * this.spriteSize;
+				moving.height = 2 * this.spriteSize;
+				return moving;
+			},
+			getSpellClip: function(direction, texture, x, y){
+				var moving;
+				switch(direction){
+					case "RIGHT":
+						var a1 = new PIXI.Texture(texture, new PIXI.Rectangle(702, 324, 54, 54))
+						var a2 = new PIXI.Texture(texture, new PIXI.Rectangle(756, 324, 54, 54))
+						var a3 = new PIXI.Texture(texture, new PIXI.Rectangle(810, 324, 54, 54))
+						moving = new PIXI.extras.MovieClip([a1, a2, a3]);
+						break;
+					case "LEFT":
+						var a1 = new PIXI.Texture(texture, new PIXI.Rectangle(702, 378, 54, 54))
+						var a2 = new PIXI.Texture(texture, new PIXI.Rectangle(756, 378, 54, 54))
+						var a3 = new PIXI.Texture(texture, new PIXI.Rectangle(810, 378, 54, 54))
+						moving = new PIXI.extras.MovieClip([a1, a2, a3]);
+						break;
+					case "UP":
+						var a1 = new PIXI.Texture(texture, new PIXI.Rectangle(702, 270, 54, 54))
+						var a2 = new PIXI.Texture(texture, new PIXI.Rectangle(756, 270, 54, 54))
+						var a3 = new PIXI.Texture(texture, new PIXI.Rectangle(810, 270, 54, 54))
+						moving = new PIXI.extras.MovieClip([a1, a2, a3]);
+						break;
+					case "DOWN":
+						var a1 = new PIXI.Texture(texture, new PIXI.Rectangle(702, 216, 54, 54))
+						var a2 = new PIXI.Texture(texture, new PIXI.Rectangle(756, 216, 54, 54))
+						var a3 = new PIXI.Texture(texture, new PIXI.Rectangle(810, 216, 54, 54))
+						moving = new PIXI.extras.MovieClip([a1, a2, a3]);
+						break;
+				}
+				moving.animationSpeed = 0.1;
+				moving.position.x = x;
+				moving.position.y = y;
+				moving.width = 2 * this.spriteSize;
+				moving.height = 2 * this.spriteSize;
+				return moving;
+			}
+		});
+	</script>
+</dom-module>

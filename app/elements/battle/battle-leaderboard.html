@@ -1,0 +1,74 @@
+<link rel="import" href="/bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="/bower_components/paper-material/paper-material.html">
+
+<dom-module id="battle-leaderboard">
+	<style>
+		paper-material {
+			background: white;
+			margin: 16px;
+			padding: 16px;
+		}
+	</style>
+	<template>
+		<iron-ajax
+			id="getLeaderboard"
+			method="GET"
+			handle-as="json"
+			content-type="application/json"
+			on-response="_onResponse"
+			on-error="_onError">
+		</iron-ajax>
+		<paper-material elevation="1">
+			<h2>Leaderboard for current battle</h2>
+			<table>
+				<tr>
+					<th>#</th>
+					<th>Nick</th>
+					<th>Kills</th>
+					<th>Deaths</th>
+				</tr>
+				<template is="dom-repeat" items="{{players}}" as="player">
+					<tr>
+						<td>{{computeIndex(index)}}</td>
+						<td>{{player.nick}}</td>
+						<td>{{player.kills}}</td>
+						<td>{{player.deaths}}</td>
+					</tr>
+				</template>
+			</table>
+		</paper-material>
+	</template>
+	<script>
+		Polymer({
+			is: 'battle-leaderboard',
+			properties: {
+				players: {
+					type: Array
+				}
+			},
+			ready: function(){
+				this.getLeaderboard();
+			},
+			getLeaderboard: function(){
+				this.$.getLeaderboard.url = "http://localhost:8080/leaderboard";
+				this.$.getLeaderboard.generateRequest();
+			},
+			_onResponse: function(r){
+				console.log(r.detail.response);
+				this.players = r.detail.response;
+				if(r.detail.xhr.status == 200){
+					var element = this;
+					setTimeout(function(){
+						element.getLeaderboard();
+					}, 1000);
+				}
+			},
+			_onError: function(err){
+				console.log(err);
+			},
+			computeIndex: function (index) {
+				return index + 1;
+			},
+		});
+	</script>
+</dom-module>

@@ -1,0 +1,242 @@
+<link rel="import" href="/bower_components/paper-material/paper-material.html">
+<link rel="import" href="/elements/markdown/render-markdown.html">
+<link rel="import" href="battle-spell.html">
+
+<dom-module id="battle-info">
+	<style>
+		:host {
+			display: block;
+			height: 100%;
+			width: 70%;
+			margin-left: 15%;
+			margin-right: 15%;
+		}
+		paper-material {
+			background: white;
+			margin: 16px;
+			padding: 16px;
+		}
+		.playerCard {
+			width: calc(50% - 64px);
+			height: 650px;
+		}
+	</style>
+	<template>
+		<paper-material elevation="1">
+			<h1>Battle info</h1>
+			<h3>{{token}}</h3>
+			<render-markdown markdown="{{overview}}"></render-markdown>
+		</paper-material>
+		<div class="horizontal layout center-center wrap">
+			<template is="dom-repeat" items="{{players}}" as="player">
+				<paper-material elevation="1" class="playerCard">
+					<h3>{{player.name}}</h3>
+					<p>{{player.description}}</p>
+					<p><span>Attack range: </span>{{player.range}}</p>
+					<h4>Spells</h4>
+					<template is="dom-repeat" items="{{player.spells}}" as="spell">
+						<battle-spell spell="{{spell}}"></battle-spell>
+						<!-- <render-markdown markdown="{{spells.description}}"></render-markdown> -->
+					</template>
+				</paper-material>
+			</template>
+		</div>
+	</template>
+	<script>
+		Polymer({
+			is: 'battle-info',
+			ready: function(){
+				var token = localStorage.token;
+				if(token){
+					this.token = 'Your token is ' + token;
+				}
+				this.overview = 'In this game there are 4 different classes. \n\n';
+				this.overview = this.overview + 'You have __100 free memory (hp)__ in the beginning and your goal is to bring as many enemies as you can to 0 free memory.\n';
+				this.overview = this.overview + 'After you reach 0 free memory you will have a __swap memory (respawn)__ time of 10 seconds and then you will be placed random on the map.\n\n';
+				this.overview = this.overview + 'The first level is __0__. You level up after you kill __3 enemies__.\n';
+				this.overview = this.overview + 'Every class has 5 skills. You get a new skill once you level up (so at level 4 you can use all the skills). In the player descriptions the spells are __ordered by the index you need to use (0-4)__.\n';
+				this.overview = this.overview + 'The basic attack damage is 5. Every player can move once a second and attack once a second.\n\n\n';
+				this.overview = this.overview + '__We a Java client lib here https://github.com/coduno/java-battle-client . Clone it and create an Application class with a main function in the package BattleHelper.java is. Have fun!__';
+
+				var shebagNinja = {
+					name: 'Shebag ninja',
+					description: 'is the linux know it all guy',
+					range: 2,
+					spells: [
+						{
+							name: 'shellshock',
+							type: 'damage',
+							info: 'the enemy and deal damage',
+							cooldown: 20,
+							range: 2,
+							power: 15
+						},
+						{
+							name: 'dd',
+							type: 'custom',
+							info: 'erases a part of the map',
+							cooldown: 25,
+							range: 2,
+							extraInfo: ''
+						},
+						{
+							name: 'sudo',
+							type: 'custom',
+							info: 'the enemy and make him do a move of your choice',
+							cooldown: 20,
+							range: 2,
+							extraInfo: 'you must pass an extra string that states "move DIRECTION"'
+						},
+						{
+							name: 'chmod',
+							type: 'custom',
+							info: 'the enemy and you remove some permissions',
+							cooldown: 40,
+							range: 2,
+							extraInfo: 'the extra string represents the permission you remove from him(freeze - remove move, disarm - remove attack, silence - remove spell)'
+						},
+						{
+							name: 'stun',
+							type: 'stun',
+							info: '',
+							cooldown: 15,
+							duration: 2,
+							range: 3
+						}
+					]
+				};
+				var gopher = {
+					name: 'Gopher',
+					description: 'is the hipster who codes in go',
+					range: 3,
+					spells: [
+						{
+							name: 'main',
+							type: 'heal',
+							info: 'function is the gopher`s holy grail. it will heal the user and deal damage equal to heal power around him.',
+							cooldown: 35,
+							power: 10
+						},
+						{
+							name: 'runtime.GarbageCollect()',
+							type: 'custom',
+							info: 'kills the players in a certain radius that have less than 10 free memory',
+							cooldown: 60,
+							range: 2
+						},
+						{
+							name: 'RWLock',
+							type: 'custom',
+							info: 'read-write locks two enemies. their moves will be carried on only if one of them casts a spel and the other one moves',
+							cooldown: 60,
+							extraInfo: 'the extra string must be the two nicks of the players. the first one will be spell locked and the second move locked. (eg: "vbalan pbochis")'
+						},
+						{
+							name: 'Goroutine wrath',
+							type: 'dot',
+							info: 'releases the wrath of 1000 go routines. You will deal 5 damage every 2 seconds for 5 ticks.',
+							range: 3,
+							power: 25
+						},
+						{
+							name: 'segmentation fault',
+							type: 'stun',
+							info: 'stuns the enemy',
+							cooldown: 15,
+							duration: 2,
+							range: 3
+						}
+					]
+				};
+				var ipPacket = {
+					name: 'IP Packet',
+					description: 'is just a simple ip packet',
+					range: 1,
+					spells: [
+						{
+							name: 'UDPFlood',
+							type: 'kick',
+							info: 'floods the enemy kicking them. the max kick is 3 matrix cells',
+							cooldown: 20,
+							power: 3
+						},
+						{
+							name: 'DDoS',
+							type: 'stun',
+							info: 'stuns the enemy',
+							cooldown: 20,
+							duration: 2,
+							range: 2
+						},
+						{
+							name: 'IPv6',
+							type: 'custom',
+							info: 'gives you the invincible buff for 5 seconds because the others are not upgraded to IPv6 yet',
+							cooldown: 40
+						},
+						{
+							name: 'ping',
+							type: 'damage',
+							info: 'your enemy and deal damage if he`s not an ip packet',
+							cooldown: 20,
+							damage: 20,
+							range: 2
+						},
+						{
+							name: 'Corrupt IP Packet',
+							type: 'custom',
+							info: 'rejects the next command of your enemy',
+							cooldown: 20,
+							range: 2
+						}
+					]
+				};
+				var j2ee = {
+					name: 'J2EE',
+					description: 'is the guy who codes enterprise Java stuff',
+					range: 1,
+					spells: [
+						{
+							name: 'StackOverflowError: ',
+							type: 'damage',
+							info: '',
+							cooldown: 15,
+							damage: 20,
+							range: 4
+						},
+						{
+							name: 'Scrum meeting',
+							type: 'slow',
+							info: 'slows your enemy',
+							cooldown: 20,
+							duration: 3,
+							range: 4
+						},
+						{
+							name: 'Dependency injection',
+							type: 'custom',
+							info: 'injects you in the enemy. when you die he will receive 20 damage from you.',
+							cooldown: 60,
+						},
+						{
+							name: 'OutOfMemoryException: ',
+							type: 'heal',
+							info: 'simulate an OOM and downloads more ram',
+							cooldown: 30,
+							power: 20
+						},
+						{
+							name: 'Stack trace',
+							type: 'slow',
+							info: 'gives a stack trace to your enemy and he must read it so he will be stuned',
+							cooldown: 20,
+							duration: 3,
+							range: 4
+						},
+					]
+				};
+				this.players = [shebagNinja, gopher, ipPacket, j2ee];
+			}
+		});
+	</script>
+</dom-module>
