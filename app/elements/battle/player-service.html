@@ -1,0 +1,151 @@
+<dom-module id="player-service">
+	<style>
+		:host {
+			display: none;
+		}
+	</style>
+	<template>
+	</template>
+	<script src="/bower_components/pixi.js/bin/pixi.js"></script>
+	<script>
+		Polymer({
+			is: 'player-service',
+			ready: function(){
+				this.directions = ['left', 'right', 'up', 'down'];
+			},
+			getAnimatedPlayer: function(x, y, size){
+				var texture = PIXI.utils.TextureCache["/images/redhead.png"];
+				var animatedPlayer = {};
+				animatedPlayer.standing = this.initializeClip([new PIXI.Texture(texture, new PIXI.Rectangle(0, 0, 54, 54))], x, y, size);
+
+				animatedPlayer.attacking = this._createAttackingClip(texture, x, y, size);
+				animatedPlayer.moving = this._createMovingClip(texture, x, y, size);
+				animatedPlayer.casting = this._createCastingClip(texture, x, y, size);
+
+				var element = this;
+				animatedPlayer.addToStage = function(stage){
+					stage.addChild(this.standing);
+					for(var i = 0; i < element.directions.length; i++){
+						stage.addChild(this.attacking[element.directions[i]]);
+						stage.addChild(this.moving[element.directions[i]]);
+						stage.addChild(this.casting[element.directions[i]]);
+					}
+				}
+
+				animatedPlayer.stand = function(){
+					for(var i = 0; i < element.directions.length; i++){
+						this.attacking[element.directions[i]].visible = false;
+						this.moving[element.directions[i]].visible = false;
+						this.casting[element.directions[i]].visible = false;
+					}
+					this.standing.visible = true;
+				}
+
+				return animatedPlayer;
+			},
+			_createCastingClip: function(texture, x, y, size){
+				var clip = {};
+				for(var i = 0; i < this.directions.length; i++){
+					clip[this.directions[i]] = this._castingClip(this.directions[i], texture, x, y, size);
+				}
+				return clip;
+			},
+			_createAttackingClip: function(texture, x, y, size){
+				var clip = {};
+				for(var i = 0; i < this.directions.length; i++){
+					clip[this.directions[i]] = this._attackingClip(this.directions[i], texture, x, y, size);
+				}
+				return clip;
+			},
+			_createMovingClip: function(texture, x, y, size){
+				var clip = {};
+				for(var i = 0; i < this.directions.length; i++){
+					clip[this.directions[i]] = this._movingClip(this.directions[i], texture, x, y, size);
+				}
+				return clip;
+			},
+			_movingClip: function(direction, texture, x, y, size){
+				var xValues = [270, 324, 378, 432, 486, 540];
+				var yValue = 0;
+				switch(direction){
+					case "left":
+						yValue = 162;
+						break;
+					case "right":
+						yValue = 108;
+						break;
+					case "up":
+						yValue = 54;
+						break;
+					case "down":
+						yValue = 0;
+						break;
+				}
+				var animations = [];
+				for(var i=0;i<xValues.length;i++){
+					animations.push(new PIXI.Texture(texture, new PIXI.Rectangle(xValues[i], yValue, 54, 54)))
+				}
+				return this.initializeClip(animations, x, y, size);
+			},
+			_attackingClip: function(direction, texture, x, y, size){
+				var xValues = [0, 54, 108, 432, 486, 540];
+				var yValue = 0;
+				var attacking;
+				switch(direction){
+					case "left":
+						yValue = 594;
+						break;
+					case "right":
+						yValue = 540;
+						break;
+					case "up":
+						yValue = 486;
+						break;
+					case "down":
+						yValue = 432;
+						break;
+				}
+				var animations = [];
+				for(var i=0;i<xValues.length;i++){
+					animations.push(new PIXI.Texture(texture, new PIXI.Rectangle(xValues[i], yValue, 54, 54)))
+				}
+				return this.initializeClip(animations, x, y, size);
+			},
+			_castingClip: function(direction, texture, x, y, size){
+				var xValues = [702, 756, 810];
+				var yValue = 0;
+				switch(direction){
+					case "left":
+						yValue = 378;
+						break;
+					case "right":
+						yValue = 324;
+						break;
+					case "up":
+						yValue = 270;
+						break;
+					case "down":
+						yValue = 216;
+						break;
+				}
+				var animations = [];
+				for(var i=0;i<xValues.length;i++){
+					animations.push(new PIXI.Texture(texture, new PIXI.Rectangle(xValues[i], yValue, 54, 54)))
+				}
+				return this.initializeClip(animations, x, y, size);
+			},
+			initializeClip: function(animations, x, y, size){
+				var clip = new PIXI.extras.MovieClip(animations);
+				clip.animationSpeed = 0.1;
+				clip.position.x = x;
+				clip.position.y = y;
+				clip.width = size;
+				clip.height = size;
+				clip.onComplete = function(){
+					console.log('COMPLETED')
+				}
+				return clip;
+			}
+		});
+	</script>
+</dom-module>
