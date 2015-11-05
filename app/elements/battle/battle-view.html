@@ -14,10 +14,10 @@
 	<template>
 		<player-service id="playerService"></player-service>
 		<ws-element url="{{wsUrl}}"></ws-element>
-		<paper-material elevation="1">
+		<paper-material elevation="1" class="horizontal layout">
 			<div id="battleView" style="display: inline-block;">
 			</div>
-			<div style="display: inline-block;">
+			<div class="flex" style="overflow: auto;">
 				<p>Battle info</p>
 				<template is="dom-repeat" items="{{players}}">
 					<p>{{item.nick}}<span> - hp: </span>{{item.hp}}</p>
