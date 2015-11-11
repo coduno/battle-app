@@ -58,17 +58,17 @@
 				this.overview = this.overview + 'The first level is __0__. You level up after you kill __3 enemies__.\n';
 				this.overview = this.overview + 'Every class has 5 skills. You get a new skill once you level up (so at level 4 you can use all the skills). In the player descriptions the spells are __ordered by the index you need to use (0-4)__.\n';
 				this.overview = this.overview + 'The basic attack damage is 5. Every player can move once a second and attack once a second.\n\n\n';
-				this.overview = this.overview + '__We a Java client lib here https://github.com/coduno/java-battle-client . Clone it and create an Application class with a main function in the package BattleHelper.java is. Have fun!__';
+				this.overview = this.overview + '__We wrote a Java client lib here https://github.com/coduno/java-battle-client . Clone it and create an Application class with a main function in the package BattleHelper.java is. Have fun!__';
 
 				var shebagNinja = {
-					name: 'Shebag ninja',
-					description: 'is the linux know it all guy',
+					name: 'Shebang Ninja',
+					description: 'Prefers shell over GUI and knows all manual pages by heart.',
 					range: 2,
 					spells: [
 						{
-							name: 'shellshock',
+							name: 'bc',
 							type: 'damage',
-							info: 'the enemy and deal damage',
+							info: 'The arbitrary precision calculator enables you to do the math in order to attack an enemy.',
 							cooldown: 20,
 							range: 2,
 							power: 15
@@ -76,7 +76,7 @@
 						{
 							name: 'dd',
 							type: 'custom',
-							info: 'erases a part of the map',
+							info: 'Use the data destroyer to permanently corrupt a square of the map.',
 							cooldown: 25,
 							range: 2,
 							extraInfo: ''
@@ -84,23 +84,23 @@
 						{
 							name: 'sudo',
 							type: 'custom',
-							info: 'the enemy and make him do a move of your choice',
+							info: 'Gives you permission to take control of an enemy player and issue a move command.',
 							cooldown: 20,
 							range: 2,
-							extraInfo: 'you must pass an extra string that states "move DIRECTION"'
+							extraInfo: 'Pass an extra string that states "move DIRECTION".'
 						},
 						{
 							name: 'chmod',
 							type: 'custom',
-							info: 'the enemy and you remove some permissions',
+							info: 'Fiddle with the enemy\'s permission bits.',
 							cooldown: 40,
 							range: 2,
-							extraInfo: 'the extra string represents the permission you remove from him(freeze - remove move, disarm - remove attack, silence - remove spell)'
+							extraInfo: 'The extra string represents the permission you remove from your enemy him(freeze - remove move, disarm - remove attack, silence - remove spell)'
 						},
 						{
-							name: 'stun',
+							name: 'sleep',
 							type: 'stun',
-							info: '',
+							info: 'The sleep command stuns an enemy.',
 							cooldown: 15,
 							duration: 2,
 							range: 3
@@ -109,41 +109,41 @@
 				};
 				var gopher = {
 					name: 'Gopher',
-					description: 'is the hipster who codes in go',
+					description: 'A systems programmer that is fed up with the humongous feature list of C++11 and lives the dream of comprehensible code.',
 					range: 3,
 					spells: [
 						{
-							name: 'main',
+							name: 'func main()',
 							type: 'heal',
-							info: 'function is the gopher`s holy grail. it will heal the user and deal damage equal to heal power around him.',
+							info: 'Like in your old C/C++ times, main is home to you. The the comfort of argument parsing strengthens you and at the same time deals damage to all those around you who do not appreciate Go the same as you do.',
 							cooldown: 35,
 							power: 10
 						},
 						{
 							name: 'runtime.GarbageCollect()',
 							type: 'custom',
-							info: 'kills the players in a certain radius that have less than 10 free memory',
+							info: 'Kills all players in a certain radius that have less than ten bytes of free memory.',
 							cooldown: 60,
 							range: 2
 						},
 						{
-							name: 'RWLock',
+							name: 'sync.RWLock',
 							type: 'custom',
-							info: 'read-write locks two enemies. their moves will be carried on only if one of them casts a spel and the other one moves',
+							info: 'Read-write locks two enemies. Their commands will be carried out only if one of them casts a spell and the other one moves.',
 							cooldown: 60,
-							extraInfo: 'the extra string must be the two nicks of the players. the first one will be spell locked and the second move locked. (eg: "vbalan pbochis")'
+							extraInfo: 'The extra string must be the two names of the players. The first one will be spell locked and the second move locked. (e.g.: "wizard42 runner1337")'
 						},
 						{
-							name: 'Goroutine wrath',
+							name: 'Goroutine Wrath',
 							type: 'dot',
-							info: 'releases the wrath of 1000 go routines. You will deal 5 damage every 2 seconds for 5 ticks.',
+							info: 'Releases the wrath of a million Goroutines. You will deal 5 damage every 2 seconds 5 times.',
 							range: 3,
 							power: 25
 						},
 						{
-							name: 'segmentation fault',
+							name: 'Segmentation Fault',
 							type: 'stun',
-							info: 'stuns the enemy',
+							info: 'Oops!',
 							cooldown: 15,
 							duration: 2,
 							range: 3
@@ -152,20 +152,20 @@
 				};
 				var ipPacket = {
 					name: 'IP Packet',
-					description: 'is just a simple ip packet',
+					description: 'IP Packets drive our information society, although many don\'t realize it. Tinker with that endless flow of information.',
 					range: 1,
 					spells: [
 						{
-							name: 'UDPFlood',
+							name: 'UDP Flood',
 							type: 'kick',
-							info: 'floods the enemy kicking them. the max kick is 3 matrix cells',
+							info: 'An enemy is pushed back by the sheer force of your UDP flood.',
 							cooldown: 20,
 							power: 3
 						},
 						{
 							name: 'DDoS',
 							type: 'stun',
-							info: 'stuns the enemy',
+							info: 'By directing so much traffic at an enemy, you can stop him from moving.',
 							cooldown: 20,
 							duration: 2,
 							range: 2
@@ -173,13 +173,13 @@
 						{
 							name: 'IPv6',
 							type: 'custom',
-							info: 'gives you the invincible buff for 5 seconds because the others are not upgraded to IPv6 yet',
+							info: 'As the others are not running on IPv6 yet, they cannot harm you for five seconds.',
 							cooldown: 40
 						},
 						{
 							name: 'ping',
 							type: 'damage',
-							info: 'your enemy and deal damage if he`s not an ip packet',
+							info: 'Send an ICMP Echo Request to your enemy. If he is not an IP Packet as well, he will be dealt damage.',
 							cooldown: 20,
 							damage: 20,
 							range: 2
@@ -187,50 +187,50 @@
 						{
 							name: 'Corrupt IP Packet',
 							type: 'custom',
-							info: 'rejects the next command of your enemy',
+							info: 'Corrupt the traffic an enemy sends to the server. His next action will fail.',
 							cooldown: 20,
 							range: 2
 						}
 					]
 				};
 				var j2ee = {
-					name: 'J2EE',
-					description: 'is the guy who codes enterprise Java stuff',
+					name: 'J2EE Programmer',
+					description: 'Been coding since Java 1.0, rejects everything that does not interop with the JVM and turned full enterprise.',
 					range: 1,
 					spells: [
 						{
-							name: 'StackOverflowError: ',
+							name: 'StackOverflowError',
 							type: 'damage',
-							info: '',
+							info: 'Missed the termination condition on a recursive function, ouch!',
 							cooldown: 15,
 							damage: 20,
 							range: 4
 						},
 						{
-							name: 'Scrum meeting',
+							name: 'Scrum Meeting',
 							type: 'slow',
-							info: 'slows your enemy',
+							info: 'A too heavy Scrum meeting demotivates you, but you manage to refelct your demotivation at an enemy and slow him down.',
 							cooldown: 20,
 							duration: 3,
 							range: 4
 						},
 						{
-							name: 'Dependency injection',
+							name: 'Dependency Injection',
 							type: 'custom',
-							info: 'injects you in the enemy. when you die he will receive 20 damage from you.',
+							info: 'You dependency-inject yourself into an enemy player. If you die, he will have to catch a lot of exceptions, dealing 20 damage.',
 							cooldown: 60,
 						},
 						{
-							name: 'OutOfMemoryException: ',
+							name: 'OutOfMemoryException',
 							type: 'heal',
-							info: 'simulate an OOM and downloads more ram',
+							info: 'Your code generated an OutOfMemoryException, because your code is leaky and always relying on GC made your mind blurry about the concept of process memory. However you go on and tweak your maximum heap size successfully and now can use more memory.',
 							cooldown: 30,
 							power: 20
 						},
 						{
-							name: 'Stack trace',
-							type: 'slow',
-							info: 'gives a stack trace to your enemy and he must read it so he will be stuned',
+							name: 'Stack Trace',
+							type: 'stun',
+							info: 'Hand a stack trace to an enemy player. He is forced to stop and read to make sense of it, which turns out to be difficult in the world of enterprise-grade Java frameworks.',
 							cooldown: 20,
 							duration: 3,
 							range: 4
