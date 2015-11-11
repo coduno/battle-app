@@ -1,5 +1,6 @@
 <link rel="import" href="/bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="/bower_components/paper-material/paper-material.html">
+<link rel="import" href="/bower_components/vaadin-grid/vaadin-grid.html">
 
 <dom-module id="battle-leaderboard">
 	<style>
@@ -20,22 +21,30 @@
 		</iron-ajax>
 		<paper-material elevation="1">
 			<h2>Leaderboard for current battle</h2>
-			<table>
-				<tr>
-					<th>#</th>
-					<th>Nick</th>
-					<th>Kills</th>
-					<th>Deaths</th>
-				</tr>
-				<template is="dom-repeat" items="{{players}}" as="player">
-					<tr>
-						<td>{{computeIndex(index)}}</td>
-						<td>{{player.Nick}}</td>
-						<td>{{player.Kills}}</td>
-						<td>{{player.Deaths}}</td>
-					</tr>
-				</template>
-			</table>
+			<vaadin-grid id="leader-grid" selection-mode="disabled">
+                            <table>
+                                    <colgroup>
+                                            <col name="index" header-text="#" width="80"  sortable="" sort-direction="asc">
+                                            <col name="Nick" header-text="Nick" flex="">
+                                            <col name="Type" header-text="Type" flex="">
+                                            <col name="Kills" header-text="Kills" flex="">
+                                            <col name="Deaths" header-text="Deaths" flex="">
+                                            <col name="K/D Ratio" header-text="K/D Ratio" flex="">
+                                    </colgroup>
+                                    <tbody>
+                                        <template is="dom-repeat" items="{{players}}" as="player">
+                                                <tr>
+                                                        <td>{{computeIndex(index)}}</td>
+                                                        <td>{{player.Nick}}</td>
+                                                        <td>{{player.Type}}</td>
+                                                        <td>{{player.Kills}}</td>
+                                                        <td>{{player.Deaths}}</td>
+                                                        <td>{{ratio(player.Kills,player.Deaths)}}</td>
+                                                </tr>
+                                        </template>
+                                    </tbody>
+                            </table>
+                        </vaadin-grid>
 		</paper-material>
 	</template>
 	<script>
@@ -68,6 +77,9 @@
 			},
 			computeIndex: function (index) {
 				return index + 1;
+			},
+			ratio: function (kills, deaths) {
+                                return kills - deaths;
 			},
 		});
 	</script>

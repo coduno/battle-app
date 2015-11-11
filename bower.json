@@ -11,7 +11,8 @@
     "Chart.js": "~1.0.2",
     "marked": "~0.3.5",
     "highlightjs": "~8.8.0",
-    "pixi.js": "~3.0.8"
+    "pixi.js": "~3.0.8",
+    "vaadin-components": "~0.3.0-beta9"
   },
   "devDependencies": {
     "web-component-tester": "*",
