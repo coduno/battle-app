@@ -21,7 +21,7 @@
 			padding: 5% 20%;
 		}
 		* {
-			font-family: 'Open Sans';
+			font-family: 'Open Sans', 'Helvetica', 'Arial', sans-serif;
 		}
 		.mono {
 			font-family: monospace;
@@ -32,11 +32,13 @@
 	</style>
 	<template>
 		<paper-material elevation="1">
+		<p style="font-size:200%;text-align:center">Your authorization token is <span class="mono">"{{token}}"</span>.</p>
 		<h1>Info</h1>
+
 		<p>Coduno Battle is a game-based programming challenge. Your task as coder is to control a character in a two-dimensional virtual world. All character
-		types are connected to coding, networks and similar stuff as well. Probably you want to automate all your commands by writing some code yourself.
-		You get to pick one of four character types when starting the challenge.</p>
-		<p>Controlling your character you can issue commands to move your character, attack others and cast spells.</p>
+		types are connected to coding, networks and similar stuff. Probably you want to automate all your commands by writing some code yourself.
+		You get to pick one of four character types when starting the battle.</p>
+		<p>To control your character you can issue commands to move your character, attack others and cast spells.</p>
 		<p>Every character has health points (we like to visualize it as free memory) of 100 bytes/health points.</p>
 
 		<h2>Player classes</h2>
@@ -382,7 +384,7 @@
 			</table>
 		</dd>
 		</dl>
-		<h2>Interfacing with the game server</h2>
+		<h2>Interfacing with the Game Server</h2>
 		<p>Commands are sent to the game server via HTTP. We have prepared a Java library to help you bootstrap on the JVM (Java, <a href="https://gist.github.com/flowlo/0369d96261002e7ab9a6">Groovy</a>, Scala, ...). It's published on maven as <span class="mono">'uno.cod.battle:java-client:1.0'</span>.</p>
 		<p>To directly interface, use the following endpoints on <span class="mono">battle.cod.uno:8080</span>:</p>
 		<dl class="mono-titles">
@@ -395,7 +397,7 @@
 			<dt>POST /move</dt>
 			<dd>Your body should look like <span class="mono">{ "direction": "UP" }</span></dd>
 			<dt>POST /attack</dt>
-			<dd>Your body should look like <span class="mono">{ "direction": "UP" }</span></dd>
+			<dd>Your body should look like <span class="mono">{ "direction": "LEFT" }</span></dd>
 			<dt>POST /spell</dt>
 			<dd>Your request must include a spell specification like <span class="mono">{ "spell": 2, "direction": "UP", "extra": "" }</span></dd>
 		</dl>
