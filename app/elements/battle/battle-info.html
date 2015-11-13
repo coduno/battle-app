@@ -16,30 +16,392 @@
 			margin: 16px;
 			padding: 16px;
 		}
-		.playerCard {
-			width: calc(50% - 64px);
-			height: 650px;
+		@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+		body {
+			padding: 5% 20%;
+		}
+		* {
+			font-family: 'Open Sans';
+		}
+		.mono {
+			font-family: monospace;
+		}
+		dl.mono-titles dt {
+			font-family: monospace;
 		}
 	</style>
 	<template>
 		<paper-material elevation="1">
-			<h1>Battle info</h1>
-			<h3>{{token}}</h3>
-			<render-markdown markdown="{{overview}}"></render-markdown>
+		<h1>Info</h1>
+		<p>Coduno Battle is a game-based programming challenge. Your task as coder is to control a character in a two-dimensional virtual world. All character
+		types are connected to coding, networks and similar stuff as well. Probably you want to automate all your commands by writing some code yourself.
+		You get to pick one of four character types when starting the challenge.</p>
+		<p>Controlling your character you can issue commands to move your character, attack others and cast spells.</p>
+		<p>Every character has health points (we like to visualize it as free memory) of 100 bytes/health points.</p>
+
+		<h2>Player classes</h2>
+		<p>Check this list and choose your trait!</p>
+		<h3>Shebang Ninja</h3>
+		<p>Prefers shell over GUI and knows all manual pages by heart.</p>
+		<dl>
+			<dt>bc</dt>
+			<dd>
+				<p>The arbitrary precision calculator enables you to do the math in order to attack an enemy.</p>
+				<table>
+					<tr>
+						<td>type</td><td>damage</td>
+					</tr>
+					<tr>
+						<td>cooldown</td><td>20</td>
+					</tr>
+					<tr>
+						<td>range</td><td>2</td>
+					</tr>
+					<tr>
+						<td>power</td><td>15</td>
+					</tr>
+				</table>
+			</dd>
+			<dt>dd</dt>
+			<dd>
+				<p>Use the data destroyer to permanently corrupt a square of the map.</p>
+				<table>
+					<tr>
+						<td>type</td><td>custom</td>
+					</tr>
+					<tr>
+						<td>cooldown</td><td>25</td>
+					</tr>
+					<tr>
+						<td>range</td><td>2</td>
+					</tr>
+				</table>
+			</dd>
+			<dt>sudo</dt>
+			<dd>
+				<p>Gives you permission to take control of an enemy player and issue a move command.</p>
+
+				<table>
+					<tr>
+						<td>type</td><td>custom</td>
+					</tr>
+					<tr>
+						<td>cooldown</td><td>20</td>
+					</tr>
+					<tr>
+						<td>range</td><td>2</td>
+					</tr>
+					<tr>
+						<td>extra</td><td>Pass an extra string that states "move DIRECTION".</td>
+					</tr>
+				</table>
+			</dd>
+			<dt>chmod</dt>
+			<dd>
+				<p>Fiddle with the enemy's permission bits.</p>
+				<table>
+					<tr>
+						<td>type</td><td>custom</td>
+					</tr>
+					<tr>
+						<td>cooldown</td><td>40</td>
+					</tr>
+					<tr>
+						<td>range</td><td>2</td>
+					</tr>
+					<tr>
+						<td>extraInfo</td><td>The extra string represents the permission you remove from your enemy him(freeze - remove move, disarm - remove attack, silence - remove spell)</td>
+					</tr>
+				</table>
+			</dd>
+			<dt>sleep</dt>
+			<dd>
+				<p>The sleep command stuns an enemy.</p>
+				<table>
+					<tr>
+						<td>type</td><td>stun</td>
+					</tr>
+					<tr>
+						<td>cooldown</td><td>15</td>
+					</tr>
+					<tr>
+						<td>duration</td><td>2</td>
+					</tr>
+					<tr>
+						<td>range</td><td>3</td>
+					</tr>
+					<tr>
+						<td>extraInfo</td><td>The extra string represents the permission you remove from your enemy him(freeze - remove move, disarm - remove attack, silence - remove spell)</td>
+					</tr>
+				</table>
+			</dd>
+		</dl>
+		<h3>Gopher</h3>
+		<p>A systems programmer that is fed up with the humongous feature list of C++11 and lives the dream of comprehensible code.</p>
+		<dl>
+		<dt>func main()</dt>
+		<dd>
+			<p>Like in your old C/C++ times, main is home to you. The the comfort of argument parsing strengthens you and at the same time deals damage to all those around you who do not appreciate Go the same as you do.</p>
+			<table>
+				<tr>
+					<td>type</td><td>heal</td>
+				</tr>
+				<tr>
+					<td>cooldown</td><td>35</td>
+				</tr>
+				<tr>
+					<td>power</td><td>10</td>
+				</tr>
+			</table>
+		</dd>
+		<dt>runtime.GarbageCollect()</dt>
+		<dd>
+			<p>Kills all players in a certain radius that have less than ten bytes of free memory.</p>
+			<table>
+				<tr>
+					<td>type</td><td>custom</td>
+				</tr>
+				<tr>
+					<td>cooldown</td><td>60</td>
+				</tr>
+				<tr>
+					<td>range</td><td>2</td>
+				</tr>
+			</table>
+		</dd>
+		<dt>sync.RWMutex</dt>
+		<dd>
+			<p>Read-write locks two enemies. Their commands will be carried out only if one of them casts a spell and the other one moves.</p>
+			<table>
+				<tr>
+					<td>type</td><td>custom</td>
+				</tr>
+				<tr>
+					<td>cooldown</td><td>60</td>
+				</tr>
+				<tr>
+					<td>extra</td><td>The extra string must be the two names of the players. The first one will be spell locked and the second move locked. (e.g.: "wizard42 runner1337")</td>
+				</tr>
+			</table>
+		</dd>
+		<dt>Goroutine Wrath</dt>
+		<dd>
+			<p>Releases the wrath of a million Goroutines. You will deal 5 damage every 2 seconds 5 times.</p>
+			<table>
+				<tr>
+					<td>type</td><td>dot</td>
+				</tr>
+				<tr>
+					<td>range</td><td>3</td>
+				</tr>
+				<tr>
+					<td>power</td><td>25</td>
+				</tr>
+			</table>
+		</dd>
+		<dt>Segmentation Fault</dt>
+		<dd>
+			<p>Oops!</p>
+			<table>
+				<tr>
+					<td>type</td><td>stun</td>
+				</tr>
+				<tr>
+					<td>cooldown</td><td>15</td>
+				</tr>
+				<tr>
+					<td>duration</td><td>2</td>
+				</tr>
+				<tr>
+					<td>range</td><td>3</td>
+				</tr>
+			</table>
+		</dd>
+		</dl>
+		<h3>IP Packet</h3>
+		<p>IP Packets drive our information society, although many don\'t realize it. Tinker with that endless flow of information.</p>
+		<dl>
+		<dt>UDP Flood</dt>
+		<dd>
+			<p>An enemy is pushed back by the sheer force of your UDP flood.</p>
+			<table>
+				<tr>
+					<td>type</td><td>kick</td>
+				</tr>
+				<tr>
+					<td>cooldown</td><td>20</td>
+				</tr>
+				<tr>
+					<td>power</td><td>3</td>
+				</tr>
+			</table>
+		</dd>
+		<dt>DDoS</dt>
+		<dd>
+			<p>By directing so much traffic at an enemy, you can stop him from moving.</p>
+			<table>
+				<tr>
+					<td>type</td><td>stun</td>
+				</tr>
+				<tr>
+					<td>cooldown</td><td>20</td>
+				</tr>
+				<tr>
+					<td>duration</td><td>2</td>
+				</tr>
+				<tr>
+					<td>range</td><td>2</td>
+				</tr>
+			</table>
+		</dd>
+		<dt>IPv6</dt>
+		<dd>
+			<p>As the others are not running on IPv6 yet, they cannot harm you for five seconds.</p>
+			<table>
+				<tr>
+					<td>type</td><td>custom</td>
+				</tr>
+				<tr>
+					<td>cooldown</td><td>40</td>
+				</tr>
+			</table>
+		</dd>
+		<dt>ping</dt>
+		<dd>
+			<p>Send an ICMP Echo Request to your enemy. If he is not an IP Packet as well, he will be dealt damage.</p>
+			<table>
+				<tr>
+					<td>type</td><td>damage</td>
+				</tr>
+				<tr>
+					<td>damage</td><td>20</td>
+				</tr>
+				<tr>
+					<td>range</td><td>2</td>
+				</tr>
+			</table>
+		</dd>
+		<dt>Corrupt IP Packet</dt>
+		<dd>
+			<p>Corrupt the traffic an enemy sends to the server. His next action will fail.</p>
+			<table>
+				<tr>
+					<td>type</td><td>custom</td>
+				</tr>
+				<tr>
+					<td>cooldown</td><td>20</td>
+				</tr>
+				<tr>
+					<td>range</td><td>2</td>
+				</tr>
+			</table>
+		</dd>
+		</dl>
+		<h3>J2EE Programmer</h3>
+		<p>Been coding since Java 1.0, rejects everything that does not interop with the JVM and turned full enterprise.</p>
+		<dl>
+		<dt>StackOverflowError</dt>
+		<dd>
+			<p>Missed the termination condition on a recursive function, ouch!</p>
+			<table>
+				<tr>
+					<td>type</td><td>kick</td>
+				</tr>
+				<tr>
+					<td>cooldown</td><td>15</td>
+				</tr>
+				<tr>
+					<td>damage</td><td>20</td>
+				</tr>
+				<tr>
+					<td>range</td><td>4</td>
+				</tr>
+			</table>
+		</dd>
+		<dt>Scrum Meeting</dt>
+		<dd>
+			<p>A too heavy Scrum meeting demotivates you, but you manage to reflect your demotivation at an enemy and slow him down.</p>
+			<table>
+				<tr>
+					<td>type</td><td>slow</td>
+				</tr>
+				<tr>
+					<td>cooldown</td><td>20</td>
+				</tr>
+				<tr>
+					<td>duration</td><td>3</td>
+				</tr>
+				<tr>
+					<td>range</td><td>4</td>
+				</tr>
+			</table>
+		</dd>
+		<dt>Dependency Injection</dt>
+		<dd>
+			<p>You dependency-inject yourself into an enemy player. If you die, he will have to catch a lot of exceptions, dealing 20 damage.</p>
+			<table>
+				<tr>
+					<td>type</td><td>custom</td>
+				</tr>
+				<tr>
+					<td>cooldown</td><td>60</td>
+				</tr>
+			</table>
+		</dd>
+		<dt>OutOfMemoryException</dt>
+		<dd>
+			<p>Your code generated an OutOfMemoryException, because your code is leaky and always relying on GC made your mind blurry about the concept of process memory. However you go on and tweak your maximum heap size successfully and now can use more memory.</p>
+			<table>
+				<tr>
+					<td>type</td><td>heal</td>
+				</tr>
+				<tr>
+					<td>cooldown</td><td>30</td>
+				</tr>
+				<tr>
+					<td>power</td><td>20</td>
+				</tr>
+			</table>
+		</dd>
+		<dt>Stack Trace</dt>
+		<dd>
+			<p>Hand a stack trace to an enemy player. He is forced to stop and read to make sense of it, which turns out to be difficult in the world of enterprise-grade Java frameworks.</p>
+			<table>
+				<tr>
+					<td>type</td><td>stun</td>
+				</tr>
+				<tr>
+					<td>cooldown</td><td>20</td>
+				</tr>
+				<tr>
+					<td>power</td><td>3</td>
+				</tr>
+				<tr>
+					<td>range</td><td>4</td>
+				</tr>
+			</table>
+		</dd>
+		</dl>
+		<h2>Interfacing with the game server</h2>
+		<p>Commands are sent to the game server via HTTP. We have prepared a Java library to help you bootstrap on the JVM (Java, <a href="https://gist.github.com/flowlo/0369d96261002e7ab9a6">Groovy</a>, Scala, ...). It's published on maven as <span class="mono">'uno.cod.battle:java-client:1.0'</span>.</p>
+		<p>To directly interface, use the following endpoints on <span class="mono">battle.cod.uno:8080</span>:</p>
+		<dl class="mono-titles">
+			<dt>GET /me</dt>
+			<dd>Will return details about your character, like health points.</dd>
+			<dt>GET /map</dt>
+			<dd>Will return detauls about the surroudings of your character. Use this to navigate.</dd>
+			<dt>POST /join</dt>
+			<dd>This will be the first call you want to make. You'll have to specifiy your character type like <span class="mono">{ "type": "JAVA_GUY" }</span></dd>
+			<dt>POST /move</dt>
+			<dd>Your body should look like <span class="mono">{ "direction": "UP" }</span></dd>
+			<dt>POST /attack</dt>
+			<dd>Your body should look like <span class="mono">{ "direction": "UP" }</span></dd>
+			<dt>POST /spell</dt>
+			<dd>Your request must include a spell specification like <span class="mono">{ "spell": 2, "direction": "UP", "extra": "" }</span></dd>
+		</dl>
+		<p>If all goes well, you'll get an HTTP status OK. If your command cannot be fulfilled for some reason (e.g. you are on cooldown) you'll receive an HTTP status Bad Request with an error similar to <span class="mono">{"battleError": {"code": "", "message": "invalid target" }, "type": "InfoError" }</span>.
+		<p>To authenticate with the server, you'll need to set the HTTP Authorization header to a value of <span class="mono">Token mytoken</span> where <span class="mono">mytoken</span> is to be substituted of course. You'll nee the leading <span class="mono">"Token "</span>, however.</p>
 		</paper-material>
-		<div class="horizontal layout center-center wrap">
-			<template is="dom-repeat" items="{{players}}" as="player">
-				<paper-material elevation="1" class="playerCard">
-					<h3>{{player.name}}</h3>
-					<p>{{player.description}}</p>
-					<p><span>Attack range: </span>{{player.range}}</p>
-					<h4>Spells</h4>
-					<template is="dom-repeat" items="{{player.spells}}" as="spell">
-						<battle-spell spell="{{spell}}"></battle-spell>
-					</template>
-				</paper-material>
-			</template>
-		</div>
 	</template>
 	<script>
 		Polymer({
@@ -53,12 +415,12 @@
 			ready: function(){
 				this.refreshToken();
 				this.overview = 'In this game there are 4 different classes. \n\n';
-				this.overview = this.overview + 'You have __100 free memory (hp)__ in the beginning and your goal is to bring as many enemies as you can to 0 free memory.\n';
-				this.overview = this.overview + 'After you reach 0 free memory you will have a __swap memory (respawn)__ time of 10 seconds and then you will be placed random on the map.\n\n';
-				this.overview = this.overview + 'The first level is __0__. You level up after you kill __3 enemies__.\n';
-				this.overview = this.overview + 'Every class has 5 skills. You get a new skill once you level up (so at level 4 you can use all the skills). In the player descriptions the spells are __ordered by the index you need to use (0-4)__.\n';
-				this.overview = this.overview + 'The basic attack damage is 5. Every player can move once a second and attack once a second.\n\n\n';
-				this.overview = this.overview + '__We wrote a Java client lib here https://github.com/coduno/java-battle-client . Clone it and create an Application class with a main function in the package BattleHelper.java is. Have fun!__';
+				this.overview += 'You have __100 free memory (hp)__ in the beginning and your goal is to bring as many enemies as you can to 0 free memory.\n';
+				this.overview += 'After you reach 0 free memory you will have a __swap memory (respawn)__ time of 10 seconds and then you will be placed random on the map.\n\n';
+				this.overview += 'The first level is __0__. You level up after you kill __3 enemies__.\n';
+				this.overview += 'Every class has 5 skills. You get a new skill once you level up (so at level 4 you can use all the skills). In the player descriptions the spells are __ordered by the index you need to use (0-4)__.\n';
+				this.overview += 'The basic attack damage is 5. Every player can move once a second and attack once a second.\n\n\n';
+				this.overview += '__We wrote a Java client lib here https://github.com/coduno/java-battle-client . Clone it and create an Application class with a main function in the package BattleHelper.java is. Have fun!__';
 
 				var shebagNinja = {
 					name: 'Shebang Ninja',
