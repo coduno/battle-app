@@ -15,7 +15,7 @@
 		<player-service id="playerService"></player-service>
 		<ws-element url="{{wsUrl}}"></ws-element>
 		<paper-material elevation="1" class="horizontal layout">
-			<div id="battleView" style="display: inline-block;">
+			<div id="battleView" style="display: inline-block;" onscroll="foo">
 			</div>
 			<div class="flex" style="overflow: auto;">
 				<p>Battle info</p>
@@ -40,6 +40,14 @@
 				},
 				players: {
 					type: Array
+				},
+				currentScale: {
+					type: Number,
+					value: 1
+				},
+				nick: {
+					type: String,
+					value: localStorage.username
 				}
 			},
 			listeners: {
@@ -51,7 +59,7 @@
 				this.animatedPlayer.attack();
 			},
 			onWsOpen: function(){
-				console.log('WS OPENED');
+				console.log('Connected :)');
 			},
 			onWsError: function(err){
 				console.log(err);
@@ -59,149 +67,110 @@
 			onWsMessage: function(data){
 				var detail = JSON.parse(data.detail)
 				var event = detail.Event;
-				// console.log(event)
-				// console.log(this.stage)
 				var map = detail.Map;
-				if(event.Nick === this.nick){
-					switch(event.Type){
-						case "MOVE":
-							this.me.position = event.From;
-							this.animatedPlayer.move(this.getDirectionFromEvent(event.From, event.To));
-							this.moveAllObjects(this.getDirectionFromEvent(event.To, event.From));
-							this.me.position = event.To;
-							break;
-						case "JOIN":
-							this.animatedPlayer.stand();
-							this.me.position = event.From;
-							break;
-						case "ATTACK":
-							this.animatedPlayer.attack(this.getDirectionFromEvent(event.From, event.To));
-							break;
-						case "SPELL":
-							this.animatedPlayer.spell(this.getDirectionFromEvent(event.From, event.To));
-							break;
-						case "DEAD":
-						if(this.me.position.x === event.From.x && this.me.position.y === event.From.y)
-							for(var key in this.objects){
-								this.objects[key].remove(this.stage);
-								delete this.objects[key];
-							}
-							break;
-					}
-				}else{
-					if(this.me.position!==undefined){
-						var eventPosition = this.getSpritePosition(event.To);
-						// if(objectX == 21 || objectY == 21){
-						// 	delete this.objects[event.Nick];
-						// 	console.log("DELETED " + event.Nick);
-						// 	return;
-						// }
-						switch(event.Type){
-							case "MOVE":
-								if(this.objects[event.Nick] == undefined){
-									var position = this.getSpritePosition(event.From);
-									this.addAnimatedEnemy(event.Nick, position.x, position.y);
-								}
-								this.objects[event.Nick].move(this.getDirectionFromEvent(event.From, event.To), eventPosition.x, eventPosition.y);
-								break;
-							case "JOIN":
-								if(this.objects[event.Nick] == undefined){
-									this.addAnimatedEnemy(event.Nick, eventPosition.x, eventPosition.y);
-								}
-								this.objects[event.Nick].stand();
-								break;
-							case "DEAD":
-								var player = this.objects[event.Nick];
-								this.stage.removeChild(player.standing);
-								this.objects[event.Nick].remove(this.stage);
-								delete this.objects[event.Nick];
-								break;
-							case "ATTACK":
-								this.objects[event.Nick].attack(this.getDirectionFromEvent(event.From, event.To));
-								break;
-							case "SPELL":
-								this.objects[event.Nick].spell(this.getDirectionFromEvent(event.From, event.To));
-								break;
-						}
-					}
+
+				var dir = this.eventDirection(event);
+
+				if (!this.objects[event.Nick]) {
+					this.addAnimatedEnemy(event.Nick, eventPosition.x, eventPosition.y);
+				}
+
+				var eventPosition = this.getSpritePosition(event.To);
+				switch(event.Type){
+					case "MOVE":
+						this.objects[event.Nick].move(dir, eventPosition.x, eventPosition.y);
+						break;
+					case "JOIN":
+						this.objects[event.Nick].stand();
+						break;
+					case "DEAD":
+						var player = this.objects[event.Nick];
+						this.stage.removeChild(player.standing);
+						this.objects[event.Nick].remove(this.stage);
+						delete this.objects[event.Nick];
+						break;
+					case "ATTACK":
+						this.objects[event.Nick].attack(dir);
+						break;
+					case "SPELL":
+						this.objects[event.Nick].spell(dir);
+						break;
 				}
 				this.displayMap(map);
 			},
-			getSpritePosition: function(position){
-				var x = Math.abs(position.x - this.me.position.x + 11) * this.spriteSize;
-				var y = Math.abs(this.me.position.y - position.y + 11) * this.spriteSize;
-				return {x: x, y: y};
+			scale: function(factor) {
+				this.stage.scale.x = factor;
+				this.stage.scale.y = factor;
+			},
+			// abs takes a position coming from the battle server which could be negative and makes it positive assuming a map size of 256 squared.
+			abs: function(pos) {
+				return {x: p.x + 0xff, y: y + 0xff};
 			},
 			displayMap: function(map){
 				var gameObjects = map.gameObjects;
-				if(this.me.position === undefined){
-					for(var i = 0; i < gameObjects.length; i++){
-						if(gameObjects[i].nick === this.nick){
-							this.me.position = gameObjects[i].position;
-							break;
-						}
-					}
-				}
 				var players = [];
 				for(var i = 0; i < gameObjects.length; i++){
 					var gameObject = gameObjects[i];
 					if(gameObject.type != "HEALTH_FOUNTAIN"){
 						players.push(gameObject);
-						if(gameObject.nick != this.nick && this.objects[gameObject.nick] == undefined){
+						if(gameObject.nick != localStorage.username && this.objects[gameObject.nick] == undefined){
 							var position = this.getSpritePosition(gameObject.position);
 							this.addAnimatedEnemy(gameObject.nick, position.x, position.y);
 							this.objects[gameObject.nick].stand();
 						}
-					}else{
-						if(this.objects['health_fountain']==undefined){
+					}else if (!this.objects['health_fountain']){
 							var position = this.getSpritePosition(gameObject.position);
 							var hf = this.newHealthFountain(position.x, position.y);
 							this.objects['health_fountain'] = hf;
 							this.stage.addChild(hf);
-						}
 					}
 				}
 				this.players = players;
 			},
-			getDirectionFromEvent: function(f, t){
-				if(f.x < t.x){
+			// direction computes the direction of something that goes from a to b
+			direction: function(a, b) {
+				if (!a || isNaN(a.x) || isNaN(a.y) || !b || isNaN(b.x) || isNaN(b.y)) {
+					console.log('Tried to compute direction of something that is not two positions.');
+					return;
+				}
+
+				var diff = { x: b.x - a.x, y: b.y - a.y };
+
+				if (Math.abs(diff.x) > Math.abs(diff.y)) {
+					if (diff.x < 0) {
+						return 'left';
+					}
 					return 'right';
 				}
-				if(f.x > t.x){
-					return 'left';
-				}
-				if(f.y < t.y){
+				if (diff.y < 0) {
 					return 'up';
 				}
-				if(f.y > t.y){
-					return 'down';
-				}
+				return 'down';
 			},
-			moveAllObjects: function(direction){
-				var xOffset = 0;
-				var yOffset = 0;
-				switch(direction){
-					case "left":
-						xOffset = -this.spriteSize;
-						break;
-					case "right":
-						xOffset = this.spriteSize;
-						break;
-					case "up":
-						yOffset = -this.spriteSize;
-						break;
-					case "down":
-						yOffset = this.spriteSize;
-						break;
+			eventDirection: function(e) {
+				if (!e || !e.From || !e.To) {
+					console.log('Tried to compute event direction of something that is not a directed event!');
+					return;
 				}
-				for(var key in this.objects){
-					this.objects[key].increasePosition(xOffset, yOffset);
+				return direction(e.From, e.To);
+			}
+			moveAllObjects: function(direction) {
+				var offset = {
+					x: this.spriteSize * (direction === 'left' ? -1 : 1),
+					y: this.spriteSize * (direction === 'down' ? 1 : -1)
+				};
+
+				for (var key in this.objects) {
+					this.objects[key].increasePosition(offset.x, offset.y);
 				}
 			},
 			ready: function(){
+				var that = this;
+				document.onwheel = function(e) {
+					that.scale(that.currentScale += (e.deltaY / screen.height));
+				};
 				var token = localStorage.token;
-				this.nick = localStorage.username;
-				this.wsUrl = 'ws://172.24.30.22:8090/?token=' + token;
+				this.wsUrl = 'ws://localhost:8090/?token=' + token;
 				this.me = {};
 				this.objects = {};
 				var element = this;
@@ -235,7 +204,7 @@
 					grassTexture.baseTexture.width = spriteSize;
 					grassTexture.baseTexture.height = spriteSize;
 
-					var ground = new PIXI.extras.TilingSprite(grassTexture, dimension, dimension);
+					var ground = new PIXI.extras.TilingSprite(grassTexture, dimension * 2, dimension * 2);
 					ground.position.x = 0;
 					ground.position.y = 0;
 					ground.tilePosition.x = 0;
@@ -381,11 +350,9 @@
 					}
 					this.standing.visible = false;
 					stage.removeChild(this.standing);
-					this.nick.visible = false;
-					console.log(stage)
-					var stageId = stage.children.indexOf(this.nick);
-					// console.log(stage.removeChild(this.nick));
-					console.log(stage.removeChildAt(stageId));
+					localStorage.username.visible = false;
+					var stageId = stage.children.indexOf(localStorage.username);
+					stage.removeChildAt(stageId);
 				}
 				animatedPlayer.move = function(direction, x, y){
 					for(var key in this.attacking){
@@ -422,8 +389,8 @@
 					}
 					this.standing.position.x = x;
 					this.standing.position.y = y;
-					this.nick.position.y = y + 15;
-					this.nick.position.x = x + 17;
+					localStorage.username.position.y = y + 15;
+					localStorage.username.position.x = x + 17;
 				}
 				animatedPlayer.attack = function(direction){
 					this.standing.visible = false;
@@ -434,12 +401,9 @@
 					}
 					this.attacking[direction].visible = true;
 					this.attacking[direction].play();
-					console.log('PLAYING ATTACK ANIMATION ' + direction)
-					console.log(this)
 					var that = this;
 					setTimeout(function(){
 						that.stand();
-						console.log('STOPING ATTACK ANIMATION')
 						that.attacking[direction].stop();
 					}, 500);
 				}
@@ -463,12 +427,12 @@
 					var yOffset = yo/100;
 					this.setPosition(this.standing.position.x + xOffset, this.standing.position.y + yOffset);
 					var that = this;
-					var interval = setInterval(function(){
+					var interval = setInterval(function() {
 						var myx = that.standing.position.x;
 						var myy = that.standing.position.y;
-							that.setPosition(myx + xOffset, myy + yOffset);
+						that.setPosition(myx + xOffset, myy + yOffset);
 					}, 10)
-					setTimeout(function(){
+					setTimeout(function() {
 						clearInterval(interval);
 					}, 1000);
 				}
